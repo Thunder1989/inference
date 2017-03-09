@@ -6,6 +6,8 @@ import pysax
 import random
 import rank_metrics
 
+from time import time
+
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.preprocessing import LabelEncoder
 from sklearn.cluster import SpectralClustering
@@ -123,6 +125,7 @@ def rank():
 
     ap = []
     top_acc = np.zeros((num,2))
+    t0 = time()
     for i in range(num):
         sim = []
         idx = []
@@ -172,6 +175,7 @@ def rank():
         top_acc[i,1] = int(cluster_label[i] == cluster_label[idx[1]])
 
     #print 'MAP:', np.mean(ap)
+    print 'done in', time() - t0
     print 'top acc:', np.mean(ap, axis=0)
 
 if __name__ == "__main__":
