@@ -124,9 +124,13 @@ def rank():
     num = len(str_input)
 
     ap = []
+    num = 20
     top_acc = np.zeros((num,2))
     t0 = time()
     for i in range(num):
+        if type_label[i] != '5' and type_label[i] != '6':
+            top_acc[i,:] = np.nan
+            continue
         sim = []
         idx = []
         cur = str_input[i]
@@ -154,7 +158,7 @@ def rank():
 
         rel = []
         idx,sim = zip(*res)
-        '''
+
         res = []
         for k, r in enumerate(idx):
             rel.append( int(cluster_label[i] == cluster_label[r]) )
@@ -166,17 +170,19 @@ def rank():
 
         print '----------------------------'
         #print rel
-        print 'query type:', type_mapping[type_label[i]], 'vav id', cluster_label[i]
+        print 'query type:', type_mapping[type_label[i]], ', vav id', cluster_label[i]
         print res
-        print rank_metrics.average_precision(rel)
+        #print rank_metrics.average_precision(rel)
         raw_input('next')
-        '''
+
         top_acc[i,0] = int(cluster_label[i] == cluster_label[idx[0]])
         top_acc[i,1] = int(cluster_label[i] == cluster_label[idx[1]])
 
     #print 'MAP:', np.mean(ap)
     print 'done in', time() - t0
-    print 'top acc:', np.mean(ap, axis=0)
+    print 'top acc:', np.nanmean(top_acc, axis=0)
+    print top_acc
+    print 'count of pts', len(str_input) - np.sum(np.isnan(top_acc), axis=0)
 
 if __name__ == "__main__":
     #cut()
