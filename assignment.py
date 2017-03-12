@@ -8,6 +8,9 @@ import rank_metrics
 
 from time import time
 
+from scipy.stats import rankdata
+from scipy import bitwise_or
+
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.preprocessing import LabelEncoder
 from sklearn.cluster import SpectralClustering
@@ -118,19 +121,21 @@ def align():
 
 def rank():
     str_input = [i.strip() for i in open('./ts2str','r').readlines()]
-    cluster_label = [i.strip() for i in open('./ts_cluster','r').readlines()]
+    cluster_label = np.asarray( [i.strip() for i in open('./ts_cluster','r').readlines()] )
     type_label = [i.strip() for i in open('./ts_type','r').readlines()]
-    type_label = type_label[1:]
+    type_label = np.asarray( type_label[1:] )
     num = len(str_input)
 
     ap = []
-    num = 20
+    #num = 20
     top_acc = np.zeros((num,2))
     t0 = time()
+    ct = 0
     for i in range(num):
-        if type_label[i] != '5' and type_label[i] != '6':
-            top_acc[i,:] = np.nan
-            continue
+        if type_label[i] == '5' or type_label[i] == '6':
+            ct += 1
+        #    top_acc[i,:] = np.nan
+        #    continue
         sim = []
         idx = []
         cur = str_input[i]
@@ -153,11 +158,20 @@ def rank():
             sim.append(tmp)
             idx.append(j)
 
+        rank = rankdata(sim, method='max')
+        rank = len(rank) - rank #the function returns run in desceding order, reverse it
+
+        nb_set = cluster_label[rank==0]
+        #TBD: might want to check other ranking position, get unique rankings and iterate
+        #also might need calculate FP
+        top_acc[i,0] = int( cluster_label[i] in nb_set )
+
+        '''
         res = zip(idx, sim)
         res = sorted(res, key=lambda x: x[-1], reverse=True)
 
         rel = []
-        idx,sim = zip(*res)
+        idx, sim = zip(*res)
 
         res = []
         for k, r in enumerate(idx):
@@ -169,20 +183,25 @@ def rank():
         ap.append( rank_metrics.average_precision(rel) )
 
         print '----------------------------'
-        #print rel
+        print rel
         print 'query type:', type_mapping[type_label[i]], ', vav id', cluster_label[i]
         print res
-        #print rank_metrics.average_precision(rel)
-        raw_input('next')
+        print rank_metrics.average_precision(rel)
 
         top_acc[i,0] = int(cluster_label[i] == cluster_label[idx[0]])
         top_acc[i,1] = int(cluster_label[i] == cluster_label[idx[1]])
+        '''
+
+        #raw_input('next')
 
     #print 'MAP:', np.mean(ap)
-    print 'done in', time() - t0
-    print 'top acc:', np.nanmean(top_acc, axis=0)
-    print top_acc
-    print 'count of pts', len(str_input) - np.sum(np.isnan(top_acc), axis=0)
+    print 'done in', time() - t0, 'seconds'
+    print 'all top acc:', np.mean(top_acc, axis=0)
+    type_label = type_label[:num]
+    acc_stpt = top_acc[bitwise_or(type_label=='5', type_label=='6'), :]
+    print 'stpt top acc:', np.mean(acc_stpt, axis=0)
+    assert ct == len(acc_stpt)
+    #print 'count of pts', len(top_acc) - np.sum(np.isnan(top_acc), axis=0)
 
 if __name__ == "__main__":
     #cut()
