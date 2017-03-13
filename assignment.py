@@ -127,7 +127,7 @@ def rank():
     num = len(str_input)
 
     ap = []
-    #num = 20
+    num = 50
     top_acc = np.zeros((num,2))
     t0 = time()
     ct = 0
@@ -136,12 +136,12 @@ def rank():
             ct += 1
         #    top_acc[i,:] = np.nan
         #    continue
-        sim = []
-        idx = []
+        sim = np.zeros(num)
         cur = str_input[i]
         #print len(cur)
         for j in range(num):
-            if i==j:
+            if j==i:
+                #imply sim[j] = 0
                 continue
 
             sim_raw = []
@@ -150,13 +150,12 @@ def rank():
             stride = win/2
             tar = str_input[j]
             while k+win <= len(cur):
-                tmp = pairwise2.align.globalms(cur[k:k+win], tar[k:k+win], 2,-1,-2,-.1,score_only=True)
+                tmp = pairwise2.align.globalms(cur[k:k+win], tar[k:k+win], 2,-1,-2,-.1, score_only=True)
                 sim_raw.append(tmp)
                 k += stride
 
             tmp = sum(sorted(sim_raw)[-10:])
-            sim.append(tmp)
-            idx.append(j)
+            sim[j] = tmp
 
         rank = rankdata(sim, method='max')
         rank = len(rank) - rank #the function returns run in desceding order, reverse it
@@ -167,6 +166,7 @@ def rank():
         top_acc[i,0] = int( cluster_label[i] in nb_set )
 
         '''
+        idx = range(num)
         res = zip(idx, sim)
         res = sorted(res, key=lambda x: x[-1], reverse=True)
 
