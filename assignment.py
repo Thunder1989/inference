@@ -206,6 +206,7 @@ def rank():
     print 'all top acc:', np.mean(top_acc, axis=0)
     print 'all top tp:', np.mean(top_tp, axis=0)
     print 'all top fp:', np.mean(top_fp, axis=0)
+    plot_cdf([top_acc, top_tp, top_fp], 'all')
 
     type_label = type_label[:num]
     acc_stpt = top_acc[bitwise_or(type_label=='5', type_label=='6'), :]
@@ -214,7 +215,19 @@ def rank():
     print 'stpt top acc:', np.mean(acc_stpt, axis=0)
     print 'stpt top tp:', np.mean(tp_stpt, axis=0)
     print 'stpt top fp:', np.mean(fp_stpt, axis=0)
+    plot_cdf([acc_stpt, tp_stpt, fp_stpt], 'stpt_only')
+
     assert ct == len(acc_stpt)
+
+def plot_cdf(arrays, fn):
+    num = len(arrays)
+    f, axarr = plt.subplots(num, sharex=True)
+    for i, array in enumerate(arrays):
+        array = array[:,0]
+        cdf = ECDF(array)
+        axarr[i].step(cdf.x, cdf.y, where='post', color='r')
+    plt.savefig('%s.pdf'%fn, dpi=300, bbox_inches='tight')
+    plt.close()
 
 if __name__ == "__main__":
     #cut()
