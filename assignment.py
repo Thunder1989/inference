@@ -18,6 +18,8 @@ from sklearn.metrics import adjusted_rand_score as ARI
 
 from Bio import pairwise2
 
+from scikits.statsmodels.tools.tools import ECDF
+
 from matplotlib import pyplot as plt
 
 types = ['AirFlowNormalized', 'AirValvePosition', 'DischargeAirTemp', 'HeatOutput', 'SpaceTemp', 'SpaceTempCoolingSetpointActive', 'SpaceTempHeatingSetpointActive']
@@ -127,8 +129,10 @@ def rank():
     num = len(str_input)
 
     ap = []
-    num = 50
+    num = 40
     top_acc = np.zeros((num,2))
+    top_tp = np.zeros((num,2))
+    top_fp = np.zeros((num,2))
     t0 = time()
     ct = 0
     for i in range(num):
@@ -164,6 +168,8 @@ def rank():
         #TBD: might want to check other ranking position, get unique rankings and iterate
         #also might need calculate FP
         top_acc[i,0] = int( cluster_label[i] in nb_set )
+        top_tp[i,0] = sum( nb_set == cluster_label[i] ) / float(len(nb_set))
+        top_fp[i,0] = sum( nb_set != cluster_label[i] ) / float(len(nb_set))
 
         '''
         idx = range(num)
@@ -195,13 +201,20 @@ def rank():
         #raw_input('next')
 
     #print 'MAP:', np.mean(ap)
+    #print 'count of pts', len(top_acc) - np.sum(np.isnan(top_acc), axis=0)
     print 'done in', time() - t0, 'seconds'
     print 'all top acc:', np.mean(top_acc, axis=0)
+    print 'all top tp:', np.mean(top_tp, axis=0)
+    print 'all top fp:', np.mean(top_fp, axis=0)
+
     type_label = type_label[:num]
     acc_stpt = top_acc[bitwise_or(type_label=='5', type_label=='6'), :]
+    tp_stpt = top_tp[bitwise_or(type_label=='5', type_label=='6'), :]
+    fp_stpt = top_fp[bitwise_or(type_label=='5', type_label=='6'), :]
     print 'stpt top acc:', np.mean(acc_stpt, axis=0)
+    print 'stpt top tp:', np.mean(tp_stpt, axis=0)
+    print 'stpt top fp:', np.mean(fp_stpt, axis=0)
     assert ct == len(acc_stpt)
-    #print 'count of pts', len(top_acc) - np.sum(np.isnan(top_acc), axis=0)
 
 if __name__ == "__main__":
     #cut()
