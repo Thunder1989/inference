@@ -129,7 +129,7 @@ def rank():
     num = len(str_input)
 
     ap = []
-    num = 10
+    #num = 10
     acc_all = np.zeros((num,2))
     tp_all = np.zeros((num,2))
     t0 = time()
@@ -205,8 +205,10 @@ def rank():
     print 'all top tp:', np.mean(tp_all, axis=0)
     #plot_cdf([acc_all, tp_all], 'all')
     df_out = pd.DataFrame([acc_all[:,0], tp_all[:,0]])
-    df_out.T.to_csv('all.csv', header=False, index=False)
+    df_out.T.to_csv('all_intra_stpt.csv', header=False, index=False)
 
+
+    '''
     type_label = type_label[:num]
     acc_stpt = acc_all[bitwise_or(type_label=='5', type_label=='6'), :]
     tp_stpt = tp_all[bitwise_or(type_label=='5', type_label=='6'), :]
@@ -217,6 +219,7 @@ def rank():
     df_out.T.to_csv('stpt_only.csv', header=False, index=False)
 
     assert ct == len(acc_stpt)
+    '''
 
 def plot_cdf(arrays, fn):
     num = len(arrays)
