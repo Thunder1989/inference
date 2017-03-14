@@ -129,16 +129,15 @@ def rank():
     num = len(str_input)
 
     ap = []
-    num = 40
-    top_acc = np.zeros((num,2))
-    top_tp = np.zeros((num,2))
-    top_fp = np.zeros((num,2))
+    num = 10
+    acc_all = np.zeros((num,2))
+    tp_all = np.zeros((num,2))
     t0 = time()
     ct = 0
     for i in range(num):
         if type_label[i] == '5' or type_label[i] == '6':
             ct += 1
-        #    top_acc[i,:] = np.nan
+        #    acc_all[i,:] = np.nan
         #    continue
         sim = np.zeros(num)
         cur = str_input[i]
@@ -167,9 +166,8 @@ def rank():
         nb_set = cluster_label[rank==0]
         #TBD: might want to check other ranking position, get unique rankings and iterate
         #also might need calculate FP
-        top_acc[i,0] = int( cluster_label[i] in nb_set )
-        top_tp[i,0] = sum( nb_set == cluster_label[i] ) / float(len(nb_set))
-        top_fp[i,0] = sum( nb_set != cluster_label[i] ) / float(len(nb_set))
+        acc_all[i,0] = int( cluster_label[i] in nb_set )
+        tp_all[i,0] = sum( nb_set == cluster_label[i] ) / float(len(nb_set))
 
         '''
         idx = range(num)
@@ -194,28 +192,29 @@ def rank():
         print res
         print rank_metrics.average_precision(rel)
 
-        top_acc[i,0] = int(cluster_label[i] == cluster_label[idx[0]])
-        top_acc[i,1] = int(cluster_label[i] == cluster_label[idx[1]])
+        acc_all[i,0] = int(cluster_label[i] == cluster_label[idx[0]])
+        acc_all[i,1] = int(cluster_label[i] == cluster_label[idx[1]])
         '''
 
         #raw_input('next')
 
     #print 'MAP:', np.mean(ap)
-    #print 'count of pts', len(top_acc) - np.sum(np.isnan(top_acc), axis=0)
+    #print 'count of pts', len(acc_all) - np.sum(np.isnan(top_acc), axis=0)
     print 'done in', time() - t0, 'seconds'
-    print 'all top acc:', np.mean(top_acc, axis=0)
-    print 'all top tp:', np.mean(top_tp, axis=0)
-    print 'all top fp:', np.mean(top_fp, axis=0)
-    plot_cdf([top_acc, top_tp, top_fp], 'all')
+    print 'all top acc:', np.mean(acc_all, axis=0)
+    print 'all top tp:', np.mean(tp_all, axis=0)
+    #plot_cdf([acc_all, tp_all], 'all')
+    df_out = pd.DataFrame([acc_all[:,0], tp_all[:,0]])
+    df_out.T.to_csv('all.csv', header=False, index=False)
 
     type_label = type_label[:num]
-    acc_stpt = top_acc[bitwise_or(type_label=='5', type_label=='6'), :]
-    tp_stpt = top_tp[bitwise_or(type_label=='5', type_label=='6'), :]
-    fp_stpt = top_fp[bitwise_or(type_label=='5', type_label=='6'), :]
+    acc_stpt = acc_all[bitwise_or(type_label=='5', type_label=='6'), :]
+    tp_stpt = tp_all[bitwise_or(type_label=='5', type_label=='6'), :]
     print 'stpt top acc:', np.mean(acc_stpt, axis=0)
     print 'stpt top tp:', np.mean(tp_stpt, axis=0)
-    print 'stpt top fp:', np.mean(fp_stpt, axis=0)
-    plot_cdf([acc_stpt, tp_stpt, fp_stpt], 'stpt_only')
+    #plot_cdf([acc_stpt, tp_stpt, fp_stpt], 'stpt_only')
+    df_out = pd.DataFrame([acc_stpt[:,0], tp_stpt[:,0]])
+    df_out.T.to_csv('stpt_only.csv', header=False, index=False)
 
     assert ct == len(acc_stpt)
 
