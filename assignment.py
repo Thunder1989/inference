@@ -27,7 +27,7 @@ type_mapping = {str(i):j for i,j in enumerate(types)}
 
 def cut():
     files = sorted(glob.glob('./data/*.csv'))
-    path = './data_cut/'
+    path = './data_ahu/'
     if not os.path.exists(path):
         os.mkdir(path)
 
@@ -232,10 +232,10 @@ def plot_cdf(arrays, fn):
     plt.close()
 
 if __name__ == "__main__":
-    #cut()
+    cut()
     #ts2str()
     #str2sim()
     #clustering()
     #align()
-    rank()
+    #rank()
 
