@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import glob
 import os
+import sys
 import pysax
 import random
 import rank_metrics
@@ -24,6 +25,40 @@ from matplotlib import pyplot as plt
 
 types = ['AirFlowNormalized', 'AirValvePosition', 'DischargeAirTemp', 'HeatOutput', 'SpaceTemp', 'SpaceTempCoolingSetpointActive', 'SpaceTempHeatingSetpointActive']
 type_mapping = {str(i):j for i,j in enumerate(types)}
+
+def get_common_cols_files(building):
+    equip = ['ahu','vav']
+    for e in equip:
+        find_common_cols(building, e)
+
+def find_common_cols(building,equip):
+
+    bid = building
+    path = './ahu_property_file_'+bid+'_cut/'
+    files = sorted(glob.glob(path+equip+'/*.csv'))
+    df = pd.read_csv(files[0])
+    col = df.columns.values
+    common_col = col
+
+    out_path = path+equip+'_common/'
+    if not os.path.exists(out_path):
+        os.mkdir(out_path)
+
+    for f in files:
+        df = pd.read_csv(f)
+        col = df.columns.values
+        if 'AirFlowNormalized' not in col:
+            print f
+        common_col = set(common_col) & set(col)
+
+    for f in files:
+        df = pd.read_csv(f)
+        col = df.columns.values
+        for c in col:
+            if c not in common_col:
+                df.drop(c, axis=1, inplace=True)
+
+        df.to_csv(out_path + f.split('/')[-1], index=False)
 
 def cut():
     files = sorted(glob.glob('./data/*.csv'))
@@ -232,7 +267,9 @@ def plot_cdf(arrays, fn):
     plt.close()
 
 if __name__ == "__main__":
-    cut()
+    para = sys.argv[1]
+    get_common_cols_files(para)
+    #cut()
     #ts2str()
     #str2sim()
     #clustering()
