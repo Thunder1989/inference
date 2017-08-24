@@ -28,20 +28,21 @@ types = ['AirFlowNormalized', 'AirValvePosition', 'DischargeAirTemp', 'HeatOutpu
 type_mapping = {str(i):j for i,j in enumerate(types)}
 
 def get_common_cols_files(building):
+
     equip = ['ahu','vav']
+
     for e in equip:
         find_common_cols(building, e)
 
-def find_common_cols(building,equip):
+def find_common_cols(bid,equip):
 
-    bid = building
-    path = './ahu_property_file_'+bid+'_cut/'
-    files = sorted(glob.glob(path+equip+'/*.csv'))
+    path = './ahu_property_file_' + bid + '_cut/'
+    files = sorted(glob.glob(path + equip + '/*.csv'))
     df = pd.read_csv(files[0])
     col = df.columns.values
     common_col = col
 
-    out_path = path+equip+'_common/'
+    out_path = path + equip + '_common/'
     if not os.path.exists(out_path):
         os.mkdir(out_path)
 
@@ -61,10 +62,10 @@ def find_common_cols(building,equip):
 
         df.to_csv(out_path + f.split('/')[-1], index=False)
 
-def cut():
-    files = sorted(glob.glob('../Data/split/*606/*.csv'))
-    name = files[0].split('/')[-2]
-    path = './'+name+'_cut/'
+def cut(bid):
+    files = sorted(glob.glob('../Data/split/*' + bid + '/*.csv'))
+    equip = files[0].split('/')[-2]
+    path = './' + equip +'_cut/'
     if not os.path.exists(path):
         os.mkdir(path)
 
