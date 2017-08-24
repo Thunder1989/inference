@@ -7,6 +7,7 @@ import random
 import rank_metrics
 
 from time import time
+from itertools import compress
 
 from scipy.stats import rankdata
 from scipy import bitwise_or
@@ -26,8 +27,9 @@ types = ['AirFlowNormalized', 'AirValvePosition', 'DischargeAirTemp', 'HeatOutpu
 type_mapping = {str(i):j for i,j in enumerate(types)}
 
 def cut():
-    files = sorted(glob.glob('./data/*.csv'))
-    path = './data_cut/'
+    files = sorted(glob.glob('../Data/split/*606/*.csv'))
+    name = files[0].split('/')[-2]
+    path = './'+name+'_cut/'
     if not os.path.exists(path):
         os.mkdir(path)
 
@@ -126,7 +128,11 @@ def rank():
     cluster_label = np.asarray( [i.strip() for i in open('./ts_cluster','r').readlines()] )
     type_label = [i.strip() for i in open('./ts_type','r').readlines()]
     type_label = np.asarray( type_label[1:] )
+
+    str_input = list(compress( str_input, bitwise_or(type_label=='5', type_label=='6') ))
+    cluster_label = cluster_label[ bitwise_or(type_label=='5', type_label=='6') ]
     num = len(str_input)
+    print '# of pts', num
 
     ap = []
     #num = 10
@@ -167,7 +173,9 @@ def rank():
         #TBD: might want to check other ranking position, get unique rankings and iterate
         #also might need calculate FP
         acc_all[i,0] = int( cluster_label[i] in nb_set )
-        tp_all[i,0] = sum( nb_set == cluster_label[i] ) / float(len(nb_set))
+        tp_all[i,0] = sum( nb_set != cluster_label[i] ) / float(len(nb_set))
+        print len(nb_set)
+        print sum( nb_set != cluster_label[i] )
 
         '''
         idx = range(num)
@@ -207,7 +215,6 @@ def rank():
     df_out = pd.DataFrame([acc_all[:,0], tp_all[:,0]])
     df_out.T.to_csv('all_intra_stpt.csv', header=False, index=False)
 
-
     '''
     type_label = type_label[:num]
     acc_stpt = acc_all[bitwise_or(type_label=='5', type_label=='6'), :]
@@ -232,10 +239,10 @@ def plot_cdf(arrays, fn):
     plt.close()
 
 if __name__ == "__main__":
-    #cut()
+    cut()
     #ts2str()
     #str2sim()
     #clustering()
     #align()
-    rank()
+    #rank()
 
