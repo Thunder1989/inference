@@ -47,20 +47,29 @@ def find_common_cols(bid,equip):
         os.mkdir(out_path)
 
     for f in files:
-        df = pd.read_csv(f)
-        col = df.columns.values
-        if 'AirFlowNormalized' not in col:
-            print f
-        common_col = set(common_col) & set(col)
+        try:
+            df = pd.read_csv(f)
+            col = df.columns.values
+            if 'AirFlowNormalized' not in col:
+                print f, 'no airflow'
+            if 'SupplyFanSpeedOutput' not in col:
+                print f, 'no fanspeed'
+            common_col = set(common_col) & set(col)
+        except Exception as e:
+            pass
 
     for f in files:
-        df = pd.read_csv(f)
-        col = df.columns.values
-        for c in col:
-            if c not in common_col:
-                df.drop(c, axis=1, inplace=True)
+        try:
+            df = pd.read_csv(f)
+            col = df.columns.values
+            for c in col:
+                if c not in common_col:
+                    df.drop(c, axis=1, inplace=True)
 
-        df.to_csv(out_path + f.split('/')[-1], index=False)
+            df.to_csv(out_path + f.split('/')[-1], index=False)
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            print exc_type, e.args, f, 'on line ' + str(exc_tb.tb_lineno)
 
 def cut(bid):
     files = sorted(glob.glob('../Data/split/*' + bid + '/*.csv'))
